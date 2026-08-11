@@ -14,6 +14,13 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/mangadex/, ''),
       },
+      // Proxy lokal untuk gambar MangaDex (uploads anti-hotlink).
+      // Di produksi (Vercel), route ini ditangani api/index.js (via rewrite /api/*).
+      '/api/img': {
+        target: 'https://uploads.mangadex.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/img/, ''),
+      },
     },
   },
 })

@@ -40,10 +40,11 @@ function getDescription(manga, lang = 'id') {
 }
 
 // URL cover dari relationship cover_art
+// Diproxy via /api/img (uploads.mangadex.org anti-hotlink).
 function getCoverUrl(manga) {
   const cover = manga?.relationships?.find((r) => r.type === 'cover_art');
   if (!cover?.attributes?.fileName) return null;
-  return `https://uploads.mangadex.org/covers/${manga.id}/${cover.attributes.fileName}.512.jpg`;
+  return `/api/img/covers/${manga.id}/${cover.attributes.fileName}.512.jpg`;
 }
 
 // Ambil nama relasi (author/artist/scanlation_group)
@@ -202,7 +203,8 @@ export async function getChapterImages(chapterId) {
     baseUrl,
     hash: chapter?.hash,
     files,
-    getImageUrl: (file) => `${baseUrl}/data/${chapter.hash}/${file}`,
+    // Gambar diproxy via /api/img (uploads.mangadex.org anti-hotlink).
+    getImageUrl: (file) => `/api/img/data/${chapter.hash}/${file}`,
   };
 }
 

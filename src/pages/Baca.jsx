@@ -14,8 +14,7 @@ export default function Baca() {
   const [error, setError] = useState(null);
   const [mode, setMode] = useState('scroll'); // 'scroll' | 'page'
   const [pageIdx, setPageIdx] = useState(0);
-  const [imgServer, setImgServer] = useState(null); // { baseUrl, hash }
-
+  const [imgServer, setImgServer] = useState(null); // { getImageUrl }
   // eslint-disable-next-line no-unused-vars
   const [riwayat, setRiwayat] = useLocalStorage('webkomik_riwayat', []);
 
@@ -35,7 +34,7 @@ export default function Baca() {
         setManga(m);
         setChapters(chs);
         setImages(img.files);
-        setImgServer({ baseUrl: img.baseUrl, hash: img.hash });
+        setImgServer({ getImageUrl: img.getImageUrl });
         const info = chs.find((c) => c.id === chapterId) || {
           chapter: '?',
           title: '',
@@ -160,7 +159,7 @@ export default function Baca() {
           {images.map((img, i) => (
             <img
               key={i}
-              src={`${imgServer.baseUrl}/data/${imgServer.hash}/${img}`}
+              src={imgServer.getImageUrl(img)}
               alt={`Halaman ${i + 1}`}
               loading="lazy"
               className="w-full max-w-3xl"
@@ -171,7 +170,7 @@ export default function Baca() {
         /* Mode Halaman */
         <div className="relative flex flex-col items-center">
           <img
-            src={`${imgServer.baseUrl}/data/${imgServer.hash}/${images[pageIdx]}`}
+            src={imgServer.getImageUrl(images[pageIdx])}
             alt={`Halaman ${pageIdx + 1}`}
             className="max-h-[80vh] w-auto"
           />
