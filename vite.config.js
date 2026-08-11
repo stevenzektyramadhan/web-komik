@@ -8,7 +8,7 @@ export default defineConfig({
     proxy: {
       // Proxy lokal untuk MangaDex API (server-side) supaya npm run dev
       // tidak terkena blokir CORS MangaDex. Di produksi (Vercel),
-      // route yang sama ditangani oleh api/mangadex/[...path].js
+      // route yang sama ditangani oleh api/index.js (via rewrite /api/*).
       '/api/mangadex': {
         target: 'https://api.mangadex.org',
         changeOrigin: true,
