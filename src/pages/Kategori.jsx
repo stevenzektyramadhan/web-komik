@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getByFormat, getGenres } from '../api/mangadex';
 import MangaCard from '../components/MangaCard';
 import Loading from '../components/Loading';
@@ -13,10 +14,14 @@ const FORMATS = [
 const LIMIT = 100;
 
 export default function Kategori() {
-  const [format, setFormat] = useState('manga');
-  const [genre, setGenre] = useState('');
+  // Filter (format/genre/halaman) disimpan di URL query string supaya tetap
+  // terjaga saat kembali dari halaman Detail / memakai tombol back browser.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const format = searchParams.get('format') || 'manga';
+  const genre = searchParams.get('genre') || '';
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+
   const [genres, setGenres] = useState([]);
-  const [page, setPage] = useState(1);
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -40,7 +45,7 @@ export default function Kategori() {
     };
   }, []);
 
-  // Muat halaman saat format atau nomor halaman berubah
+  // Muat halaman saat format, genre, atau nomor halaman berubah
   useEffect(() => {
     const reqId = ++requestIdRef.current;
     let active = true;
@@ -71,33 +76,44 @@ export default function Kategori() {
     };
   }, [format, genre, page]);
 
-  // Scroll ke atas saat pindah halaman / ganti format
+  // Scroll ke atas saat pindah halaman / ganti filter
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [format, genre, page]);
 
+  const updateParams = (next) => {
+    const params = new URLSearchParams(searchParams);
+    // Set nilai yang berubah; hapus key jika kosong agar URL tetap bersih
+    Object.entries(next).forEach(([key, value]) => {
+      if (value === '' || value === null) {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    });
+    setSearchParams(params, { replace: true });
+  };
+
   const changeFormat = (key) => {
     if (key === format) return;
-    setPage(1);
-    setFormat(key);
+    updateParams({ format: key, page: 1 });
   };
 
   const changeGenre = (value) => {
     if (value === genre) return;
-    setPage(1);
-    setGenre(value);
+    updateParams({ genre: value, page: 1 });
   };
 
   const changePage = (next) => {
     if (next < 1 || next > totalPages || next === page) return;
-    setPage(next);
+    updateParams({ page: next });
   };
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold">Kategori</h1>
 
-      <div className="mb-6 flex gap-2">
+      <div className="mb-6 flex flex-wrap gap-2">
         {FORMATS.map((f) => (
           <button
             key={f.key}

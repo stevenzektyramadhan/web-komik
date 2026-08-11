@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getManga, getChapters } from '../api/mangadex';
 import Loading from '../components/Loading';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -10,8 +10,21 @@ function formatTanggal(iso) {
   return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+// Label tombol "Kembali" berdasarkan halaman asal (disimpan lewat state Link).
+function getBackLabel(from) {
+  if (!from) return '← Kembali';
+  if (from.startsWith('/kategori')) return '← Kembali ke Kategori';
+  if (from.startsWith('/cari')) return '← Kembali ke Pencarian';
+  if (from.startsWith('/favorit')) return '← Kembali ke Favorit';
+  if (from.startsWith('/riwayat')) return '← Kembali ke Riwayat';
+  if (from === '/') return '← Kembali ke Beranda';
+  return '← Kembali';
+}
+
 export default function Detail() {
   const { id } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [manga, setManga] = useState(null);
   const [chapters, setChapters] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,6 +32,22 @@ export default function Detail() {
   const [favorit, setFavorit] = useLocalStorage('webkomik_favorit', []);
 
   const isFavorit = favorit.some((f) => f.id === id);
+
+  // Halaman asal (mis. "/kategori?format=manhua") dikirim oleh MangaCard via state.
+  const backTo = location.state?.from;
+  const backLabel = getBackLabel(backTo);
+
+  // Kembali ke halaman sebelumnya; fallback ke Beranda jika dibuka langsung
+  // (tidak ada riwayat navigasi internal).
+  const goBack = () => {
+    if (backTo) {
+      navigate(backTo);
+    } else if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/');
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -57,6 +86,15 @@ export default function Detail() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
+      {/* Tombol kembali */}
+      <button
+        type="button"
+        onClick={goBack}
+        className="mb-4 inline-flex items-center gap-2 rounded-lg border border-dark-600 px-3 py-1.5 text-sm text-gray-300 transition hover:border-accent hover:text-accent"
+      >
+        {backLabel}
+      </button>
+
       <div className="mb-8 flex flex-col gap-6 md:flex-row">
         {/* Cover */}
         <div className="w-48 shrink-0 overflow-hidden rounded-xl border border-dark-700 md:w-56">

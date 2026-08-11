@@ -1,9 +1,15 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 export default function MangaCard({ manga }) {
+  const location = useLocation();
+  // Simpan asal halaman (path + query) supaya halaman Detail bisa membuat
+  // tombol "Kembali" yang mengarah balik dengan state (mis. kategori) terjaga.
+  const from = `${location.pathname}${location.search}`;
+
   return (
     <Link
       to={`/komik/${manga.id}`}
+      state={{ from }}
       className="card-hover group overflow-hidden rounded-xl border border-dark-700 bg-dark-800"
     >
       <div className="relative aspect-[3/4] overflow-hidden bg-dark-700">
