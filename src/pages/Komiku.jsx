@@ -175,7 +175,9 @@ export default function Komiku() {
             )}
           </p>
 
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+          {/* Grid lebih lebar (4 kolom max) karena cover Komiku berbentuk
+              banner horizontal (~1.91:1), bukan potret 3:4 seperti MangaDex. */}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {results.map((m) => (
               <KomikuCard key={m.id} manga={m} />
             ))}

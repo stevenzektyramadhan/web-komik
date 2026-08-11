@@ -15,16 +15,20 @@ export default function KomikuCard({ manga }) {
       state={{ from }}
       className="card-hover group overflow-hidden rounded-xl border border-dark-700 bg-dark-800"
     >
-      <div className="relative aspect-[3/4] overflow-hidden bg-dark-700">
+      {/* NOTE: cover Komiku di list adalah banner horizontal (rasio ~1.91:1),
+          bukan potret 3:4 seperti MangaDex. Memakai object-cover di kotak
+          aspect-[3/4] membuat gambar tampak ngezoom/terpotong. Solusinya:
+          tampilkan dengan rasio asli (h-auto w-full) — tidak ada crop/zoom. */}
+      <div className="relative w-full overflow-hidden bg-dark-700">
         {manga.cover ? (
           <img
             src={manga.cover}
             alt={manga.title}
             loading="lazy"
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+            className="h-auto w-full transition duration-300 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-4xl">
+          <div className="flex aspect-[3/4] w-full items-center justify-center text-4xl">
             📕
           </div>
         )}
