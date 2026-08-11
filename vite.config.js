@@ -64,6 +64,21 @@ export default defineConfig({
               },
             },
           },
+          {
+            // Gambar chapter Komiku — CacheFirst + cache 30 hari
+            urlPattern: /^\/api\/komiku-img\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'komiku-images',
+              expiration: {
+                maxEntries: 500,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
         ],
       },
     }),
@@ -84,6 +99,16 @@ export default defineConfig({
         target: 'https://uploads.mangadex.org',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/img/, ''),
+      },
+      // Proxy lokal untuk gambar chapter Komiku (img.komiku.org anti-hotlink
+      // + tidak mengirim CORS). Header Referer wajib agar tidak 403.
+      '/api/komiku-img': {
+        target: 'https://img.komiku.org',
+        changeOrigin: true,
+        headers: {
+          Referer: 'https://komiku.org/',
+        },
+        rewrite: (path) => path.replace(/^\/api\/komiku-img/, ''),
       },
     },
   },

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import MangaCard from '../components/MangaCard';
+import KomikuCard from '../components/KomikuCard';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 export default function Favorit() {
@@ -26,7 +27,11 @@ export default function Favorit() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
             {favorit.map((m) => (
               <div key={m.id} className="relative">
-                <MangaCard manga={m} />
+                {m.source === 'komiku' ? (
+                  <KomikuCard manga={m} />
+                ) : (
+                  <MangaCard manga={m} />
+                )}
                 <button
                   onClick={() => hapus(m.id)}
                   className="absolute right-2 top-2 z-10 rounded-full bg-black/70 px-2 py-0.5 text-xs text-red-400 hover:bg-black"

@@ -1,16 +1,18 @@
 // ============================================================
-// Proxy serverless Vercel untuk MangaDex API & gambar
+// Proxy serverless Vercel untuk MangaDex & Komiku API + gambar
 // ------------------------------------------------------------
 // MangaDex TIDAK mengirim header CORS untuk situs lain
 // (lihat https://api.mangadex.org/docs/2-limitations/):
 //   "We do not send CORS responses for other websites than ours;
 //    MUST proxy the requests your users make to our services"
 //
-// Dua fungsi:
-//   /api/mangadex/*  → api.mangadex.org      (data JSON)
-//   /api/img/*       → uploads.mangadex.org  (cover & halaman chapter)
-// uploads.mangadex.org memberlakukan anti-hotlink (menolak gambar yang
-// diambil langsung dari domain lain), jadi gambar juga harus diproxy.
+// Tiga fungsi:
+//   /api/mangadex/*    → api.mangadex.org      (data JSON)
+//   /api/img/*         → uploads.mangadex.org  (cover & halaman chapter)
+//   /api/komiku-img/*  → img.komiku.org        (gambar chapter Komiku)
+// uploads.mangadex.org & img.komiku.org memberlakukan anti-hotlink
+// (menolak gambar yang diambil langsung dari domain lain), jadi gambar
+// juga harus diproxy. img.komiku.org butuh header Referer komiku.org.
 //
 // PENTING — kenapa bukan api/mangadex/[...path].js?
 // Catch-all `[...path]` di Vercel HANYA mencocokkan path 1-segmen
@@ -28,6 +30,7 @@
 
 const API_ORIGIN = 'https://api.mangadex.org';
 const UPLOADS_ORIGIN = 'https://uploads.mangadex.org';
+const KOMIKU_IMG_ORIGIN = 'https://img.komiku.org';
 
 const stripPath = (req) => {
   let raw = req.url;
@@ -49,6 +52,9 @@ const route = (path) => {
   if (path.startsWith('/api/img')) {
     return { origin: UPLOADS_ORIGIN, rest: path.slice('/api/img'.length) || '/' };
   }
+  if (path.startsWith('/api/komiku-img')) {
+    return { origin: KOMIKU_IMG_ORIGIN, rest: path.slice('/api/komiku-img'.length) || '/' };
+  }
   return null;
 };
 
@@ -68,16 +74,21 @@ export default async function handler(req, res) {
     }
 
     const target = `${r.origin}${r.rest}${search}`;
-    const isImage = r.origin === UPLOADS_ORIGIN;
+    const isImage = r.origin === UPLOADS_ORIGIN || r.origin === KOMIKU_IMG_ORIGIN;
+    const headers = {
+      'User-Agent': 'WebKomik/1.0 (web-komik-dun.vercel.app)',
+      Accept: isImage
+        ? 'image/avif,image/webp,image/jpeg,image/png,*/*'
+        : 'application/json',
+    };
+    // img.komiku.org anti-hotlink: butuh Referer komiku.org agar tidak 403.
+    if (r.origin === KOMIKU_IMG_ORIGIN) {
+      headers.Referer = 'https://komiku.org/';
+    }
 
     const response = await fetch(target, {
       method: req.method || 'GET',
-      headers: {
-        'User-Agent': 'WebKomik/1.0 (web-komik-dun.vercel.app)',
-        Accept: isImage
-          ? 'image/avif,image/webp,image/jpeg,image/png,*/*'
-          : 'application/json',
-      },
+      headers,
     });
 
     const contentType =

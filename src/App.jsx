@@ -7,6 +7,9 @@ import Detail from './pages/Detail';
 import Baca from './pages/Baca';
 import Favorit from './pages/Favorit';
 import Riwayat from './pages/Riwayat';
+import Komiku from './pages/Komiku';
+import KomikuDetail from './pages/KomikuDetail';
+import KomikuBaca from './pages/KomikuBaca';
 
 function Footer() {
   return (
@@ -46,6 +49,9 @@ export default function App() {
           <Route path="/komik/:id/baca/:chapterId" element={<Baca />} />
           <Route path="/favorit" element={<Favorit />} />
           <Route path="/riwayat" element={<Riwayat />} />
+          <Route path="/komiku" element={<Komiku />} />
+          <Route path="/komiku/:slug" element={<KomikuDetail />} />
+          <Route path="/komiku/:slug/baca/:chapter" element={<KomikuBaca />} />
           <Route path="*" element={<Beranda />} />
         </Routes>
       </main>

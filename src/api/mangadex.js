@@ -8,6 +8,20 @@
 // Di dev, vite.config.js mem-proxy path yang sama ke api.mangadex.org.
 const BASE = '/api/mangadex';
 
+// fetch dengan batas waktu (timeout). Tanpa ini, kalau API MangaDex sedang
+// tidak merespons (down/lambat/jaringan bermasalah), request bisa menggantung
+// sangat lama dan halaman terlihat "loading terus" tanpa pesan apa pun.
+// Dengan timeout, halaman menampilkan error dalam waktu wajar (15 detik).
+async function fetchWithTimeout(url, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 function buildUrl(path, params = {}) {
   // Catatan penting: MangaDex mengharuskan bracket [] LITERAL pada parameter
   // (mis. translatedLanguage[]=id), bukan versi ter-encode (%5B%5D).
@@ -84,7 +98,7 @@ async function listManga(params) {
     'contentRating[]': DEFAULT_CONTENT_RATINGS,
     ...params,
   });
-  const res = await fetch(url);
+  const res = await fetchWithTimeout(url);
   if (!res.ok) throw new Error(`MangaDex error: ${res.status}`);
   const data = await res.json();
   return {
@@ -135,7 +149,7 @@ export async function getManga(id) {
   const url = buildUrl(`/manga/${id}`, {
     'includes[]': ['cover_art', 'author', 'artist'],
   });
-  const res = await fetch(url);
+  const res = await fetchWithTimeout(url);
   if (!res.ok) throw new Error(`MangaDex error: ${res.status}`);
   const data = await res.json();
   const m = data.data;
@@ -171,7 +185,7 @@ export async function getChapters(mangaId, limit = 500) {
     'contentRating[]': DEFAULT_CONTENT_RATINGS,
     limit,
   });
-  const res = await fetch(url);
+  const res = await fetchWithTimeout(url);
   if (!res.ok) throw new Error(`MangaDex error: ${res.status}`);
   const data = await res.json();
   return (
@@ -194,7 +208,7 @@ export async function getChapters(mangaId, limit = 500) {
 // --- URL gambar chapter ---
 export async function getChapterImages(chapterId) {
   const url = buildUrl(`/at-home/server/${chapterId}`);
-  const res = await fetch(url);
+  const res = await fetchWithTimeout(url);
   if (!res.ok) throw new Error(`MangaDex error: ${res.status}`);
   const data = await res.json();
   const { baseUrl, chapter } = data;
@@ -210,7 +224,7 @@ export async function getChapterImages(chapterId) {
 
 // --- Daftar genre (untuk filter kategori) ---
 export async function getGenres() {
-  const res = await fetch(buildUrl('/manga/tag'));
+  const res = await fetchWithTimeout(buildUrl('/manga/tag'));
   const data = await res.json();
   return (
     (data.data || [])

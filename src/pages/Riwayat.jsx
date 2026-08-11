@@ -40,7 +40,11 @@ export default function Riwayat() {
           {riwayat.map((r) => (
             <Link
               key={r.id + r.chapterId}
-              to={`/komik/${r.id}/baca/${r.chapterId}`}
+              to={
+                r.source === 'komiku'
+                  ? `/komiku/${r.id}/baca/${r.chapterId}`
+                  : `/komik/${r.id}/baca/${r.chapterId}`
+              }
               className="flex items-center gap-4 rounded-xl border border-dark-700 bg-dark-800 p-3 transition hover:border-accent"
             >
               <div className="h-16 w-12 shrink-0 overflow-hidden rounded bg-dark-700">

@@ -5,6 +5,7 @@ const links = [
   { to: '/', label: 'Beranda', end: true },
   { to: '/kategori', label: 'Kategori' },
   { to: '/cari', label: 'Cari' },
+  { to: '/komiku', label: 'Komiku' },
   { to: '/favorit', label: 'Favorit' },
   { to: '/riwayat', label: 'Riwayat' },
 ];
