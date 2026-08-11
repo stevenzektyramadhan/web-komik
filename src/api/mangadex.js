@@ -3,7 +3,10 @@
 // Semua fungsi memfilter bahasa Indonesia (translatedLanguage=id)
 // ============================================================
 
-const BASE = 'https://api.mangadex.org';
+// MangaDex tidak mengirim header CORS untuk situs lain, jadi semua
+// request diarahkan ke proxy serverless Vercel (/api/mangadex/*).
+// Di dev, vite.config.js mem-proxy path yang sama ke api.mangadex.org.
+const BASE = '/api/mangadex';
 
 function buildUrl(path, params = {}) {
   // Catatan penting: MangaDex mengharuskan bracket [] LITERAL pada parameter
