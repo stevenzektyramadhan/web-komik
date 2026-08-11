@@ -44,8 +44,8 @@ export default function Beranda() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       {/* Hero */}
-      <section className="mb-10 rounded-2xl border border-dark-700 bg-gradient-to-r from-dark-800 to-dark-900 p-8">
-        <h1 className="text-3xl font-bold">
+      <section className="mb-10 rounded-2xl border border-dark-700 bg-gradient-to-r from-dark-800 to-dark-900 p-6 sm:p-8">
+        <h1 className="text-2xl font-bold sm:text-3xl">
           Baca Komik <span className="text-accent">Bahasa Indonesia</span> Gratis
         </h1>
         <p className="mt-2 max-w-2xl text-gray-400">

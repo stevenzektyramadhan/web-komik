@@ -151,13 +151,13 @@ export default function Detail() {
                   idx % 2 === 0 ? 'bg-dark-800' : 'bg-dark-900'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <span className="font-medium text-accent">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="shrink-0 font-medium text-accent">
                     Ch. {c.chapter || '?'}
                   </span>
-                  {c.title && <span className="text-gray-300">{c.title}</span>}
+                  {c.title && <span className="truncate text-gray-300">{c.title}</span>}
                 </div>
-                <div className="flex shrink-0 items-center gap-3 text-xs text-gray-500">
+                <div className="hidden shrink-0 items-center gap-3 text-xs text-gray-500 sm:flex">
                   <span>{c.group}</span>
                   <span>{formatTanggal(c.publishAt)}</span>
                 </div>

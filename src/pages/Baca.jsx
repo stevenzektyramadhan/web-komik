@@ -133,18 +133,18 @@ export default function Baca() {
         {prevChapter ? (
           <Link
             to={`/komik/${id}/baca/${prevChapter.id}`}
-            className="btn-ghost"
+            className="btn-ghost px-2 text-xs sm:px-4 sm:text-sm"
           >
             ← Ch. {prevChapter.chapter || '?'}
           </Link>
         ) : (
           <span />
         )}
-        <span className="text-sm text-gray-400">Bahasa Indonesia</span>
+        <span className="hidden text-sm text-gray-400 sm:inline">Bahasa Indonesia</span>
         {nextChapter ? (
           <Link
             to={`/komik/${id}/baca/${nextChapter.id}`}
-            className="btn-primary"
+            className="btn-primary px-2 text-xs sm:px-4 sm:text-sm"
           >
             Ch. {nextChapter.chapter || '?'} →
           </Link>
@@ -202,20 +202,23 @@ export default function Baca() {
         {prevChapter ? (
           <Link
             to={`/komik/${id}/baca/${prevChapter.id}`}
-            className="btn-ghost"
+            className="btn-ghost px-2 text-xs sm:px-4 sm:text-sm"
           >
             ← Ch. {prevChapter.chapter || '?'}
           </Link>
         ) : (
           <span />
         )}
-        <Link to={`/komik/${id}`} className="text-sm text-gray-400 hover:text-accent">
+        <Link
+          to={`/komik/${id}`}
+          className="hidden text-sm text-gray-400 hover:text-accent sm:inline"
+        >
           Kembali ke daftar chapter
         </Link>
         {nextChapter ? (
           <Link
             to={`/komik/${id}/baca/${nextChapter.id}`}
-            className="btn-primary"
+            className="btn-primary px-2 text-xs sm:px-4 sm:text-sm"
           >
             Ch. {nextChapter.chapter || '?'} →
           </Link>
