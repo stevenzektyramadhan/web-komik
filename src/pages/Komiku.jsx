@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getKomikuByGenre, searchKomiku } from '../api/komiku';
 import KomikuCard from '../components/KomikuCard';
 import Loading from '../components/Loading';
@@ -33,11 +34,16 @@ const GENRES = [
 ];
 
 export default function Komiku() {
-  const [genre, setGenre] = useState('romance');
-  const [page, setPage] = useState(1);
-  const [mode, setMode] = useState('genre'); // 'genre' | 'search'
-  const [input, setInput] = useState('');
-  const [query, setQuery] = useState('');
+  // Filter (genre/mode/halaman/kata kunci) disimpan di URL query string
+  // supaya tetap terjaga saat kembali dari halaman Detail Komiku / memakai
+  // tombol back browser (pola sama seperti halaman Kategori).
+  const [searchParams, setSearchParams] = useSearchParams();
+  const genre = searchParams.get('genre') || 'romance';
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+  const mode = searchParams.get('mode') === 'search' ? 'search' : 'genre'; // 'genre' | 'search'
+  const query = searchParams.get('q') || '';
+
+  const [input, setInput] = useState(query);
   const [results, setResults] = useState([]);
   const [total, setTotal] = useState(0);
   const [hasNextPage, setHasNextPage] = useState(false);
@@ -46,6 +52,12 @@ export default function Komiku() {
   const requestIdRef = useRef(0);
 
   const searching = mode === 'search' && query.trim() !== '';
+
+  // Jaga kotak pencarian tetap sinkron dengan query di URL (mis. saat
+  // kembali dari halaman Detail / back browser ke mode genre).
+  useEffect(() => {
+    setInput(query);
+  }, [query]);
 
   // API genre hanya memberi hasNextPage (tanpa totalPages pasti), jadi total
   // halaman dihitung bertahap: halaman terakhir adalah halaman pertama yang
@@ -92,25 +104,34 @@ export default function Komiku() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [genre, page, query, mode]);
 
+  const updateParams = (next) => {
+    const params = new URLSearchParams(searchParams);
+    // Set nilai yang berubah; hapus key jika kosong agar URL tetap bersih
+    Object.entries(next).forEach(([key, value]) => {
+      if (value === '' || value === null) {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    });
+    setSearchParams(params, { replace: true });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const q = input.trim();
     if (!q) return;
-    setPage(1);
-    setMode('search');
-    setQuery(q);
+    updateParams({ q, mode: 'search', page: 1 });
   };
 
   const changeGenre = (value) => {
     if (value === genre && mode === 'genre') return;
-    setMode('genre');
-    setGenre(value);
-    setPage(1);
+    updateParams({ genre: value, mode: 'genre', page: 1, q: '' });
   };
 
   const changePage = (next) => {
     if (next < 1 || next > totalPages || next === page) return;
-    setPage(next);
+    updateParams({ page: next });
   };
 
   return (

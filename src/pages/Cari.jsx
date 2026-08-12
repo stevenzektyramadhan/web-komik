@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { searchManga } from '../api/mangadex';
 import MangaCard from '../components/MangaCard';
 import Loading from '../components/Loading';
@@ -7,9 +8,13 @@ import Pagination from '../components/Pagination';
 const LIMIT = 100;
 
 export default function Cari() {
-  const [input, setInput] = useState('');
-  const [query, setQuery] = useState('');
-  const [page, setPage] = useState(1);
+  // Kata kunci & halaman disimpan di URL query string supaya tetap terjaga
+  // saat kembali dari halaman Detail / memakai tombol back browser.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const query = searchParams.get('q') || '';
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+
+  const [input, setInput] = useState(query);
   const [results, setResults] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -18,6 +23,12 @@ export default function Cari() {
 
   const totalPages = Math.max(1, Math.ceil(total / LIMIT));
   const searched = query.trim() !== '';
+
+  // Jaga kotak pencarian tetap sinkron dengan query di URL (mis. saat
+  // kembali dari halaman Detail / back browser).
+  useEffect(() => {
+    setInput(query);
+  }, [query]);
 
   // Muat hasil pencarian saat query atau halaman berubah
   useEffect(() => {
@@ -55,17 +66,29 @@ export default function Cari() {
     if (query.trim()) window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [query, page]);
 
+  const updateParams = (next) => {
+    const params = new URLSearchParams(searchParams);
+    // Set nilai yang berubah; hapus key jika kosong agar URL tetap bersih
+    Object.entries(next).forEach(([key, value]) => {
+      if (value === '' || value === null) {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    });
+    setSearchParams(params, { replace: true });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const q = input.trim();
     if (!q) return;
-    setPage(1);
-    setQuery(q);
+    updateParams({ q, page: 1 });
   };
 
   const changePage = (next) => {
     if (next < 1 || next > totalPages || next === page) return;
-    setPage(next);
+    updateParams({ page: next });
   };
 
   return (
