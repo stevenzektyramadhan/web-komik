@@ -12,6 +12,17 @@ function formatWaktu(ts) {
   return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+// Label posisi baca terakhir: "Hlm. 3/20" (mode halaman) atau "50%" (scroll).
+function formatPosisi(r) {
+  if (typeof r.pageIdx === 'number' && r.totalPages) {
+    return ` · Hlm. ${Math.min(r.pageIdx + 1, r.totalPages)}/${r.totalPages}`;
+  }
+  if (typeof r.progress === 'number') {
+    return ` · ${Math.max(0, Math.min(99, r.progress))}%`;
+  }
+  return '';
+}
+
 export default function Riwayat() {
   const [riwayat, setRiwayat] = useLocalStorage('webkomik_riwayat', []);
 
@@ -65,6 +76,7 @@ export default function Riwayat() {
                 <p className="truncate font-medium">{r.title}</p>
                 <p className="text-sm text-accent">
                   Lanjutkan — Ch. {r.chapter || '?'}
+                  <span className="text-gray-400">{formatPosisi(r)}</span>
                 </p>
               </div>
               <span className="shrink-0 text-xs text-gray-500">

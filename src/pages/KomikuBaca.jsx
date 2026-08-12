@@ -1,27 +1,41 @@
-import { useEffect, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { getKomikuChapterImages, getKomikuChapters, getKomikuDetail } from '../api/komiku';
 import Loading from '../components/Loading';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { usePageMeta } from '../hooks/usePageMeta';
 
+const READER_MODE_KEY = 'webkomik_reader_mode';
+
+function getSavedMode() {
+  try {
+    const m = window.localStorage.getItem(READER_MODE_KEY);
+    return m === 'page' ? 'page' : 'scroll';
+  } catch {
+    return 'scroll';
+  }
+}
+
 export default function KomikuBaca() {
   const { slug, chapter } = useParams();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   // cs = slug chapter yang benar untuk endpoint /baca-chapter (bisa berbeda
   // dari slug detail). Selalu dikirim dari daftar chapter di KomikuDetail.
   const csQuery = searchParams.get('cs');
 
   const [manga, setManga] = useState(null);
+  const [chapters, setChapters] = useState([]);
   const [chapterSlug, setChapterSlug] = useState(csQuery || null);
   const [images, setImages] = useState([]);
   const [navigation, setNavigation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [mode, setMode] = useState('scroll'); // 'scroll' | 'page'
+  const [mode, setMode] = useState(getSavedMode); // 'scroll' | 'page'
   const [pageIdx, setPageIdx] = useState(0);
   // eslint-disable-next-line no-unused-vars
   const [riwayat, setRiwayat] = useLocalStorage('webkomik_riwayat', []);
+  const scrollRef = useRef(0); // posisi scroll untuk menyimpan kemajuan
 
   // Kalau dibuka tanpa ?cs (mis. dari Riwayat), resolve slug chapter dari
   // daftar chapter detail.
@@ -34,6 +48,7 @@ export default function KomikuBaca() {
     getKomikuChapters(slug)
       .then((chs) => {
         if (!active) return;
+        setChapters(chs);
         const found = chs.find((c) => c.chapter === chapter);
         setChapterSlug(found?.slug || slug);
       })
@@ -45,12 +60,22 @@ export default function KomikuBaca() {
     };
   }, [slug, chapter, csQuery]);
 
+  // Simpan preferensi mode reader yang dipilih user.
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(READER_MODE_KEY, mode);
+    } catch {
+      // abaikan (storage penuh / private mode)
+    }
+  }, [mode]);
+
   useEffect(() => {
     if (!chapterSlug) return;
     let active = true;
     setLoading(true);
     setError(null);
     setPageIdx(0);
+    scrollRef.current = 0;
     (async () => {
       try {
         const [img, detail] = await Promise.all([
@@ -61,6 +86,35 @@ export default function KomikuBaca() {
         setImages(img.images);
         setNavigation(img.navigation || null);
         setManga(detail);
+        // Restore posisi baca terakhir untuk chapter yang sama.
+        try {
+          const raw = window.localStorage.getItem('webkomik_riwayat');
+          const list = raw ? JSON.parse(raw) : [];
+          const saved = list.find((r) => r.id === slug && r.chapterId === chapter);
+          if (saved && img.images.length) {
+            if (typeof saved.pageIdx === 'number' && saved.totalPages) {
+              setPageIdx(Math.min(saved.pageIdx, img.images.length - 1));
+            } else if (typeof saved.progress === 'number' && saved.progress > 0) {
+              setTimeout(() => {
+                const maxScroll = Math.max(
+                  1,
+                  document.documentElement.scrollHeight - window.innerHeight
+                );
+                window.scrollTo({ top: (saved.progress / 100) * maxScroll });
+              }, 400);
+            }
+          }
+        } catch {
+          // abaikan (localStorage tidak tersedia / data korup)
+        }
+        // Daftar chapter untuk dropdown (kalau belum ter-load karena ?cs).
+        if (chapters.length === 0) {
+          getKomikuChapters(slug)
+            .then((chs) => {
+              if (active) setChapters(chs);
+            })
+            .catch(() => {});
+        }
         // Catat riwayat baca (id = slug detail, source = komiku)
         setRiwayat((prev) => [
           {
@@ -83,6 +137,7 @@ export default function KomikuBaca() {
     return () => {
       active = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapterSlug, slug, chapter, setRiwayat]);
 
   // Scroll ke atas saat ganti chapter
@@ -104,6 +159,116 @@ export default function KomikuBaca() {
     manga ? `Ch. ${chapter} — ${manga.title} — WebKomik` : 'Membaca — WebKomik',
     'Baca komik manga, manhwa, dan manhua bahasa Indonesia secara gratis di WebKomik.'
   );
+
+  // Simpan posisi baca ke riwayat: langsung saat ganti chapter,
+  // dan (mode scroll) di-throttle 2 detik saat scroll berhenti.
+  const saveProgress = () => {
+    if (!manga) return;
+    const total = images.length || 1;
+    let progress = 0;
+    if (mode === 'page') {
+      progress = total ? Math.min(99, Math.round(((pageIdx + 1) / total) * 100)) : 0;
+    } else {
+      const maxScroll = Math.max(
+        1,
+        document.documentElement.scrollHeight - window.innerHeight
+      );
+      progress = Math.min(99, Math.round(((scrollRef.current || 0) / maxScroll) * 100));
+    }
+    setRiwayat((prev) => [
+      {
+        id: slug,
+        title: manga.title,
+        cover: manga.cover,
+        chapter,
+        chapterId: chapter,
+        source: 'komiku',
+        pageIdx: mode === 'page' ? pageIdx : undefined,
+        totalPages: mode === 'page' ? total : undefined,
+        progress,
+        at: Date.now(),
+      },
+      ...prev.filter((r) => r.id !== slug),
+    ].slice(0, 50));
+  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const saveProgressRef = useRef(saveProgress);
+  saveProgressRef.current = saveProgress;
+
+  // Mode halaman: catat posisi saat berpindah page.
+  useEffect(() => {
+    if (mode === 'page' && images.length > 0) saveProgress();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageIdx, mode, images.length]);
+
+  // Mode scroll: simpan saat scroll berhenti (throttle 2 detik).
+  useEffect(() => {
+    if (mode !== 'scroll') return undefined;
+    let timer = null;
+    const onScroll = () => {
+      if (timer) return;
+      timer = setTimeout(() => {
+        timer = null;
+        scrollRef.current = window.scrollY || 0;
+        saveProgressRef.current();
+      }, 2000);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (timer) clearTimeout(timer);
+    };
+  }, [mode]);
+
+  // Keyboard navigasi: ← / → pindah halaman (mode halaman) atau
+  // ganti chapter (mode scroll); Home/End lompat awal/akhir.
+  // Tidak aktif saat fokus di input/textarea/select.
+  useEffect(() => {
+    const goPrev = () => {
+      if (mode === 'page') {
+        if (pageIdx > 0) setPageIdx((p) => Math.max(0, p - 1));
+        else if (prevChapter) navigate(chapterTo(prevChapter));
+      } else if (prevChapter) {
+        navigate(chapterTo(prevChapter));
+      }
+    };
+    const goNext = () => {
+      if (mode === 'page') {
+        if (pageIdx < images.length - 1)
+          setPageIdx((p) => Math.min(images.length - 1, p + 1));
+        else if (nextChapter) navigate(chapterTo(nextChapter));
+      } else if (nextChapter) {
+        navigate(chapterTo(nextChapter));
+      }
+    };
+    const onKey = (e) => {
+      const t = e.target;
+      if (
+        t &&
+        (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')
+      ) {
+        return;
+      }
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goPrev();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        goNext();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        if (mode === 'page') setPageIdx(0);
+        else window.scrollTo({ top: 0 });
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        if (mode === 'page') setPageIdx(images.length - 1);
+        else window.scrollTo({ top: document.documentElement.scrollHeight });
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, pageIdx, prevChapter, nextChapter, slug, images.length, chapter]);
 
   if (loading) return <Loading label="Memuat chapter Komiku..." />;
   if (error)
@@ -137,6 +302,29 @@ export default function KomikuBaca() {
           </div>
 
           <div className="flex items-center gap-1">
+            <select
+              aria-label="Pilih chapter"
+              value={chapter}
+              onChange={(e) => {
+                const target = chapters.find((c) => c.chapter === e.target.value);
+                navigate(
+                  target
+                    ? `/komiku/${slug}/baca/${target.chapter}?cs=${encodeURIComponent(target.slug)}`
+                    : `/komiku/${slug}/baca/${e.target.value}`
+                );
+              }}
+              className="input-field !w-auto !py-1.5 !px-2 text-xs"
+            >
+              {chapters.length > 0 ? (
+                chapters.map((c) => (
+                  <option key={c.chapter} value={c.chapter}>
+                    Ch. {c.chapter || '?'}{c.title ? ` — ${c.title}` : ''}
+                  </option>
+                ))
+              ) : (
+                <option value={chapter}>Ch. {chapter || '?'}</option>
+              )}
+            </select>
             <button
               type="button"
               onClick={() => setMode('scroll')}

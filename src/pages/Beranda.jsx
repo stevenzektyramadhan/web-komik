@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { getLatest, getPopular } from '../api/mangadex';
 import MangaCard from '../components/MangaCard';
 import Loading from '../components/Loading';
+import LanjutkanBaca from '../components/LanjutkanBaca';
 import { usePageMeta } from '../hooks/usePageMeta';
 
 export default function Beranda() {
@@ -60,6 +61,9 @@ export default function Beranda() {
           Sumber data: MangaDex API.
         </p>
       </section>
+
+      {/* Lanjutkan Baca (dari riwayat) */}
+      <LanjutkanBaca />
 
       {/* Terbaru */}
       <section className="mb-10">

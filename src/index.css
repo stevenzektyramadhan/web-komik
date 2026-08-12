@@ -25,6 +25,26 @@
   }
 }
 
+/* ============================================================
+   MODE TERANG (mode default aplikasi ini = gelap)
+   Palet asli memakai kelas dark-* dan gray-* yang hardcoded,
+   jadi override berbasis :root:not(.dark) — diterapkan saat
+   <html> TIDAK punya class .dark.
+   ============================================================ */
+:root:not(.dark) {
+  color-scheme: light;
+}
+:root:not(.dark) body {
+  background-color: #f5f5fa;
+  color: #1f2430;
+}
+:root:not(.dark) ::-webkit-scrollbar-track {
+  background: #eceef4;
+}
+:root:not(.dark) ::-webkit-scrollbar-thumb {
+  background: #c3c7d4;
+}
+
 @layer components {
   .btn-primary {
     @apply inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 font-medium text-white transition hover:bg-accent-light disabled:cursor-not-allowed disabled:opacity-50;
@@ -39,4 +59,54 @@
     @apply transition duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-accent/10;
   }
 }
+
+/* Variasi terang untuk komponen custom */
+:root:not(.dark) .btn-ghost {
+  border-color: #c3c7d4;
+  color: #374151;
+}
+:root:not(.dark) .input-field {
+  background-color: #ffffff;
+  border-color: #c3c7d4;
+  color: #1f2430;
+}
+:root:not(.dark) .input-field::placeholder {
+  color: #9ca3af;
+}
+:root:not(.dark) .card-hover:hover {
+  box-shadow: 0 10px 15px -3px rgba(17, 17, 24, 0.1), 0 4px 6px -4px rgba(17, 17, 24, 0.1);
+}
+
+/* Elemen kartu & panel yang memakai palet gelap menjadi terang */
+:root:not(.dark) .bg-dark-800,
+:root:not(.dark) .bg-dark-900 {
+  background-color: #ffffff;
+}
+:root:not(.dark) .bg-dark-700 {
+  background-color: #eceef4;
+}
+:root:not(.dark) .bg-dark-950 {
+  background-color: #ffffff;
+}
+:root:not(.dark) .border-dark-700,
+:root:not(.dark) .border-dark-600 {
+  border-color: #d7dae3;
+}
+/* Teks abu-abu dibuat lebih gelap agar tetap terbaca di latar terang */
+:root:not(.dark) .text-gray-100 {
+  color: #111827;
+}
+:root:not(.dark) .text-gray-200 {
+  color: #1f2430;
+}
+:root:not(.dark) .text-gray-300 {
+  color: #374151;
+}
+:root:not(.dark) .text-gray-400 {
+  color: #4b5563;
+}
+:root:not(.dark) .text-gray-500 {
+  color: #6b7280;
+}
+
 
