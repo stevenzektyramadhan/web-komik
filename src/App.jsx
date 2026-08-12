@@ -19,7 +19,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 
 function Footer() {
   return (
-    <footer className="mt-auto border-t border-dark-700 bg-dark-900 py-6">
+    <footer className="mt-auto border-t border-gray-200 bg-white py-6 dark:border-dark-700 dark:bg-dark-900">
       <div className="mx-auto max-w-7xl px-4 text-center text-xs leading-relaxed text-gray-500">
         <p>
           WebKomik — aplikasi gratis untuk membaca manga, manhwa, dan manhua dalam bahasa
@@ -31,7 +31,7 @@ function Footer() {
             href="https://mangadex.org"
             target="_blank"
             rel="noreferrer"
-            className="text-gray-300 hover:text-accent"
+            className="text-gray-600 hover:text-accent dark:text-gray-300"
           >
             MangaDex
           </a>

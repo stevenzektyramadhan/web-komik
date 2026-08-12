@@ -10,9 +10,9 @@ export default function MangaCard({ manga }) {
     <Link
       to={`/komik/${manga.id}`}
       state={{ from }}
-      className="card-hover group overflow-hidden rounded-xl border border-dark-700 bg-dark-800"
+      className="card-hover group overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-dark-700 dark:bg-dark-800"
     >
-      <div className="relative aspect-[3/4] overflow-hidden bg-dark-700">
+      <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 dark:bg-dark-700">
         {manga.cover ? (
           <img
             src={manga.cover}
@@ -32,7 +32,7 @@ export default function MangaCard({ manga }) {
         )}
       </div>
       <div className="p-3">
-        <h3 className="line-clamp-2 text-sm font-medium text-gray-100 group-hover:text-accent">
+        <h3 className="line-clamp-2 text-sm font-medium text-gray-800 group-hover:text-accent dark:text-gray-100">
           {manga.title}
         </h3>
       </div>

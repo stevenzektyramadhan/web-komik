@@ -24,7 +24,7 @@ export default function Favorit() {
       {favorit.length === 0 ? (
         <div className="py-16 text-center">
           <p className="text-5xl">🔖</p>
-          <p className="mt-4 text-gray-400">Belum ada komik favorit.</p>
+          <p className="mt-4 text-gray-500 dark:text-gray-400">Belum ada komik favorit.</p>
           <Link to="/" className="btn-primary mt-4">
             Jelajahi Komik
           </Link>

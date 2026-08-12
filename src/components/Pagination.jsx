@@ -26,7 +26,7 @@ export default function Pagination({ page, totalPages, onChange }) {
       <button
         onClick={() => onChange(page - 1)}
         disabled={page <= 1}
-        className="rounded-lg border border-dark-600 px-3 py-2 text-sm text-gray-300 transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
+        className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40 dark:border-dark-600 dark:text-gray-300"
         aria-label="Halaman sebelumnya"
       >
         ‹
@@ -45,7 +45,7 @@ export default function Pagination({ page, totalPages, onChange }) {
             className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
               p === page
                 ? 'bg-accent text-white'
-                : 'border border-dark-600 text-gray-300 hover:border-accent hover:text-accent'
+                : 'border border-gray-300 text-gray-600 hover:border-accent hover:text-accent dark:border-dark-600 dark:text-gray-300'
             }`}
           >
             {p}
@@ -56,7 +56,7 @@ export default function Pagination({ page, totalPages, onChange }) {
       <button
         onClick={() => onChange(page + 1)}
         disabled={page >= totalPages}
-        className="rounded-lg border border-dark-600 px-3 py-2 text-sm text-gray-300 transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
+        className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 transition hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40 dark:border-dark-600 dark:text-gray-300"
         aria-label="Halaman berikutnya"
       >
         ›

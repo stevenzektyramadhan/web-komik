@@ -2,6 +2,7 @@
 // API layer Komiku — https://komiku-rest-api.vercel.app
 // Sumber komik berbahasa Indonesia tambahan di samping MangaDex.
 // ============================================================
+import { getCache, setCache } from '../lib/cache';
 // Catatan arsitektur (hasil eksplorasi):
 // - API ini mengirim header Access-Control-Allow-Origin: *, jadi
 //   data JSON bisa di-fetch langsung dari browser tanpa proxy.
@@ -24,16 +25,34 @@ function proxyImageUrl(url) {
   return url.replace(/^https?:\/\/img\.komiku\.org/, '/api/komiku-img');
 }
 
-async function fetchJson(path) {
+// Lama cache per jenis data (dalam ms).
+const TTL_LIST = 10 * 60 * 1000; // daftar komik per genre / pencarian — 10 menit
+const TTL_DETAIL = 60 * 60 * 1000; // detail & daftar chapter — 1 jam
+
+async function fetchJson(path, ttlMs = null) {
+  // Endpoint gambar chapter (/baca-chapter) TIDAK di-cache: URL-nya
+  // sementara dan isinya bisa berubah; simpan langsung dari jaringan.
+  if (ttlMs == null) {
+    const res = await fetch(`${BASE}${path}`);
+    if (!res.ok) throw new Error(`Komiku error: ${res.status}`);
+    return res.json();
+  }
+  // Endpoint data (list/detail) di-cache supaya navigasi kembali instan
+  // dan tetap bisa dibuka saat koneksi terputus.
+  const cacheKey = 'komiku' + path;
+  const cached = getCache(cacheKey);
+  if (cached !== null && cached !== undefined) return cached;
   const res = await fetch(`${BASE}${path}`);
   if (!res.ok) throw new Error(`Komiku error: ${res.status}`);
-  return res.json();
+  const data = await res.json();
+  setCache(cacheKey, data, ttlMs);
+  return data;
 }
 
 // --- Pencarian komik ---
 // Respons: { status, message, keyword, total, data: [...] }
 export async function searchKomiku(query) {
-  const data = await fetchJson(`/search?q=${encodeURIComponent(query)}`);
+  const data = await fetchJson(`/search?q=${encodeURIComponent(query)}`, TTL_LIST);
   return {
     results:
       (data.data || []).map((m) => ({
@@ -53,7 +72,7 @@ export async function searchKomiku(query) {
 //            nextPageUrl, data: [...] }
 export async function getKomikuByGenre(genre, page = 1) {
   const pagePath = page > 1 ? `/page/${page}` : '';
-  const data = await fetchJson(`/genre/${encodeURIComponent(genre)}${pagePath}`);
+  const data = await fetchJson(`/genre/${encodeURIComponent(genre)}${pagePath}`, TTL_LIST);
   return {
     genre: data.genre,
     results:
@@ -77,7 +96,7 @@ export async function getKomikuByGenre(genre, page = 1) {
 //            genres, slug, chapters: [{ title, originalLink, apiLink,
 //            views, date, chapterNumber }] }
 export async function getKomikuDetail(slug) {
-  const data = await fetchJson(`/detail-komik/${encodeURIComponent(slug)}`);
+  const data = await fetchJson(`/detail-komik/${encodeURIComponent(slug)}`, TTL_DETAIL);
   const info = data.info || {};
   return {
     id: data.slug || slug,
@@ -100,7 +119,7 @@ export async function getKomikuDetail(slug) {
 // untuk endpoint /baca-chapter. Ambil slug dari apiLink supaya selalu
 // konsisten (bisa berbeda dari slug detail).
 export async function getKomikuChapters(slug) {
-  const data = await fetchJson(`/detail-komik/${encodeURIComponent(slug)}`);
+  const data = await fetchJson(`/detail-komik/${encodeURIComponent(slug)}`, TTL_DETAIL);
   const chapters = data.chapters || [];
   return chapters.map((c) => {
     const apiLink = c.apiLink || '';

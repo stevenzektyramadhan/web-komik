@@ -2,15 +2,41 @@
 // API layer MangaDex — https://api.mangadex.org
 // Semua fungsi memfilter bahasa Indonesia (translatedLanguage=id)
 // ============================================================
+import { getCache, setCache } from '../lib/cache';
 
 // MangaDex tidak mengirim header CORS untuk situs lain, jadi semua
 // request diarahkan ke proxy serverless Vercel (/api/mangadex/*).
 // Di dev, vite.config.js mem-proxy path yang sama ke api.mangadex.org.
 const BASE = '/api/mangadex';
 
-// fetch dengan batas waktu (timeout). Tanpa ini, kalau API MangaDex sedang
-// tidak merespons (down/lambat/jaringan bermasalah), request bisa menggantung
-// sangat lama dan halaman terlihat "loading terus" tanpa pesan apa pun.
+// Lama cache per jenis data (dalam ms).
+const TTL_LIST = 10 * 60 * 1000; // daftar komik (Beranda/Kategori/Cari) — 10 menit
+const TTL_DETAIL = 60 * 60 * 1000; // detail manga / daftar chapter — 1 jam
+const TTL_GENRES = 24 * 60 * 60 * 1000; // daftar genre — 1 hari
+
+// fetch JSON dengan cache di localStorage. Kalau data belum kedaluwarsa,
+// langsung dikembalikan tanpa request jaringan (navigasi kembali jadi instan
+// dan situs tetap berfungsi saat koneksi terputus).
+async function fetchJsonCached(url, ttlMs) {
+  const cached = getCache(url);
+  if (cached !== null && cached !== undefined) return cached;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) throw new Error(`MangaDex error: ${res.status}`);
+    const data = await res.json();
+    setCache(url, data, ttlMs);
+    return data;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// fetch dengan batas waktu (timeout) — dipakai endpoint yang TIDAK sebaiknya
+// di-cache (gambar chapter, yang URL-nya valid sesaat). Tanpa ini, kalau API
+// MangaDex sedang tidak merespons (down/lambat/jaringan bermasalah), request
+// bisa menggantung sangat lama dan halaman terlihat "loading terus".
 // Dengan timeout, halaman menampilkan error dalam waktu wajar (15 detik).
 async function fetchWithTimeout(url, timeoutMs = 15000) {
   const controller = new AbortController();
@@ -98,9 +124,7 @@ async function listManga(params) {
     'contentRating[]': DEFAULT_CONTENT_RATINGS,
     ...params,
   });
-  const res = await fetchWithTimeout(url);
-  if (!res.ok) throw new Error(`MangaDex error: ${res.status}`);
-  const data = await res.json();
+  const data = await fetchJsonCached(url, TTL_LIST);
   return {
     results:
       data.data?.map((m) => ({
@@ -149,9 +173,7 @@ export async function getManga(id) {
   const url = buildUrl(`/manga/${id}`, {
     'includes[]': ['cover_art', 'author', 'artist'],
   });
-  const res = await fetchWithTimeout(url);
-  if (!res.ok) throw new Error(`MangaDex error: ${res.status}`);
-  const data = await res.json();
+  const data = await fetchJsonCached(url, TTL_DETAIL);
   const m = data.data;
   return {
     id: m.id,
@@ -185,9 +207,7 @@ export async function getChapters(mangaId, limit = 500) {
     'contentRating[]': DEFAULT_CONTENT_RATINGS,
     limit,
   });
-  const res = await fetchWithTimeout(url);
-  if (!res.ok) throw new Error(`MangaDex error: ${res.status}`);
-  const data = await res.json();
+  const data = await fetchJsonCached(url, TTL_DETAIL);
   return (
     data.data?.map((c) => ({
       id: c.id,
@@ -224,8 +244,7 @@ export async function getChapterImages(chapterId) {
 
 // --- Daftar genre (untuk filter kategori) ---
 export async function getGenres() {
-  const res = await fetchWithTimeout(buildUrl('/manga/tag'));
-  const data = await res.json();
+  const data = await fetchJsonCached(buildUrl('/manga/tag'), TTL_GENRES);
   return (
     (data.data || [])
       .filter((t) => t.attributes.group === 'genre')

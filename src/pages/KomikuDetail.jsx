@@ -84,7 +84,7 @@ export default function KomikuDetail() {
 
   if (loading) return <Loading label="Memuat detail komik..." />;
   if (error) return <p className="p-8 text-red-400">Gagal memuat: {error}</p>;
-  if (!manga) return <p className="p-8 text-gray-400">Komik tidak ditemukan.</p>;
+  if (!manga) return <p className="p-8 text-gray-500 dark:text-gray-400">Komik tidak ditemukan.</p>;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
@@ -92,18 +92,18 @@ export default function KomikuDetail() {
       <button
         type="button"
         onClick={goBack}
-        className="mb-4 inline-flex items-center gap-2 rounded-lg border border-dark-600 px-3 py-1.5 text-sm text-gray-300 transition hover:border-accent hover:text-accent"
+        className="mb-4 inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-600 transition hover:border-accent hover:text-accent dark:border-dark-600 dark:text-gray-300"
       >
         {backLabel}
       </button>
 
       <div className="mb-8 flex flex-col gap-6 md:flex-row">
         {/* Cover */}
-        <div className="w-48 shrink-0 overflow-hidden rounded-xl border border-dark-700 md:w-56">
+        <div className="w-48 shrink-0 overflow-hidden rounded-xl border border-gray-200 dark:border-dark-700 md:w-56">
           {manga.cover ? (
             <img src={manga.cover} alt={manga.title} className="w-full" />
           ) : (
-            <div className="flex aspect-[3/4] items-center justify-center bg-dark-800 text-5xl">
+            <div className="flex aspect-[3/4] items-center justify-center bg-gray-100 text-5xl dark:bg-dark-800">
               📕
             </div>
           )}
@@ -114,21 +114,21 @@ export default function KomikuDetail() {
           <h1 className="text-2xl font-bold md:text-3xl">{manga.title}</h1>
 
           {manga.altTitles?.length > 0 && (
-            <p className="mt-1 text-sm text-gray-400">{manga.altTitles.join(' · ')}</p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{manga.altTitles.join(' · ')}</p>
           )}
 
           <div className="mt-3 flex flex-wrap gap-2 text-xs">
             {manga.type && (
-              <span className="rounded bg-dark-700 px-2 py-1">{manga.type}</span>
+              <span className="rounded bg-gray-100 px-2 py-1 dark:bg-dark-700">{manga.type}</span>
             )}
             {manga.rating && (
-              <span className="rounded bg-dark-700 px-2 py-1">⭐ {manga.rating}</span>
+              <span className="rounded bg-gray-100 px-2 py-1 dark:bg-dark-700">⭐ {manga.rating}</span>
             )}
             {manga.views && (
-              <span className="rounded bg-dark-700 px-2 py-1">{manga.views}</span>
+              <span className="rounded bg-gray-100 px-2 py-1 dark:bg-dark-700">{manga.views}</span>
             )}
             {manga.authors?.length > 0 && (
-              <span className="rounded bg-dark-700 px-2 py-1">
+              <span className="rounded bg-gray-100 px-2 py-1 dark:bg-dark-700">
                 ✍️ {manga.authors.join(', ')}
               </span>
             )}
@@ -139,7 +139,7 @@ export default function KomikuDetail() {
               {manga.genres.map((g) => (
                 <span
                   key={g}
-                  className="rounded-full border border-dark-600 px-2.5 py-0.5 text-xs text-gray-300"
+                  className="rounded-full border border-gray-300 px-2.5 py-0.5 text-xs text-gray-600 dark:border-dark-600 dark:text-gray-300"
                 >
                   {g}
                 </span>
@@ -155,7 +155,7 @@ export default function KomikuDetail() {
           </button>
 
           {manga.description && (
-            <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-gray-300">
+            <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-gray-600 dark:text-gray-300">
               {manga.description}
             </p>
           )}
@@ -166,30 +166,30 @@ export default function KomikuDetail() {
       <section>
         <h2 className="mb-4 text-xl font-bold">
           Daftar Chapter{' '}
-          <span className="text-sm font-normal text-gray-400">
+          <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
             ({chapters.length} chapter bahasa Indonesia)
           </span>
         </h2>
 
         {chapters.length === 0 ? (
-          <p className="py-8 text-center text-gray-500">
+          <p className="py-8 text-center text-gray-500 dark:text-gray-400">
             Belum ada chapter bahasa Indonesia untuk komik ini.
           </p>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-dark-700">
+          <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-dark-700">
             {chapters.map((c, idx) => (
               <Link
                 key={c.chapter}
                 to={`/komiku/${slug}/baca/${c.chapter}?cs=${encodeURIComponent(c.slug)}`}
-                className={`flex items-center justify-between gap-4 px-4 py-3 text-sm transition hover:bg-dark-700 ${
-                  idx % 2 === 0 ? 'bg-dark-800' : 'bg-dark-900'
+                className={`flex items-center justify-between gap-4 px-4 py-3 text-sm transition hover:bg-gray-100 dark:hover:bg-dark-700 ${
+                  idx % 2 === 0 ? 'bg-white dark:bg-dark-800' : 'bg-gray-50 dark:bg-dark-900'
                 }`}
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <span className="shrink-0 font-medium text-accent">
                     Ch. {c.chapter || '?'}
                   </span>
-                  {c.title && <span className="truncate text-gray-300">{c.title}</span>}
+                  {c.title && <span className="truncate text-gray-600 dark:text-gray-300">{c.title}</span>}
                 </div>
                 <div className="hidden shrink-0 items-center gap-3 text-xs text-gray-500 sm:flex">
                   {c.date && <span>{c.date}</span>}

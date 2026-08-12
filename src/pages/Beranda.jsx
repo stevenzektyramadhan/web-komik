@@ -42,7 +42,7 @@ export default function Beranda() {
     return (
       <div className="mx-auto max-w-7xl px-4 py-16 text-center">
         <p className="text-lg text-red-400">Gagal memuat data: {error}</p>
-        <p className="mt-2 text-sm text-gray-400">
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
           Periksa koneksi internet Anda. MangaDex API mungkin sedang tidak dapat diakses.
         </p>
       </div>
@@ -52,11 +52,11 @@ export default function Beranda() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       {/* Hero */}
-      <section className="mb-10 rounded-2xl border border-dark-700 bg-gradient-to-r from-dark-800 to-dark-900 p-6 sm:p-8">
+      <section className="mb-10 rounded-2xl border border-gray-200 bg-gradient-to-r from-white to-gray-100 p-6 sm:p-8 dark:border-dark-700 dark:from-dark-800 dark:to-dark-900">
         <h1 className="text-2xl font-bold sm:text-3xl">
           Baca Komik <span className="text-accent">Bahasa Indonesia</span> Gratis
         </h1>
-        <p className="mt-2 max-w-2xl text-gray-400">
+        <p className="mt-2 max-w-2xl text-gray-500 dark:text-gray-400">
           Ribuan manga, manhwa, dan manhua dengan terjemahan bahasa Indonesia.
           Sumber data: MangaDex API.
         </p>

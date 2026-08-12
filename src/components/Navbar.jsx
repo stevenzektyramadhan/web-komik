@@ -15,7 +15,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-dark-700 bg-dark-950/90 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/90 backdrop-blur dark:border-dark-700 dark:bg-dark-950/90">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
         <Link to="/" className="flex items-center gap-2 text-xl font-bold">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-white">
@@ -37,8 +37,8 @@ export default function Navbar() {
                   className={({ isActive }) =>
                     `rounded-lg px-3 py-2 text-sm font-medium transition ${
                       isActive
-                        ? 'bg-dark-700 text-accent'
-                        : 'text-gray-300 hover:bg-dark-700 hover:text-white'
+                        ? 'bg-gray-100 text-accent dark:bg-dark-700'
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-dark-700 dark:hover:text-white'
                     }`
                   }
                 >
@@ -58,7 +58,7 @@ export default function Navbar() {
             onClick={() => setMenuOpen((v) => !v)}
             aria-label={menuOpen ? 'Tutup menu' : 'Buka menu'}
             aria-expanded={menuOpen}
-            className="rounded-lg border border-dark-600 p-2 text-gray-300 transition hover:border-accent hover:text-accent"
+            className="rounded-lg border border-gray-300 p-2 text-gray-600 transition hover:border-accent hover:text-accent dark:border-dark-600 dark:text-gray-300"
           >
             {menuOpen ? (
               <svg
@@ -94,7 +94,7 @@ export default function Navbar() {
 
       {/* Menu mobile dropdown */}
       {menuOpen && (
-        <ul className="border-t border-dark-700 bg-dark-950/95 px-4 py-2 backdrop-blur md:hidden">
+        <ul className="border-t border-gray-200 bg-white/95 px-4 py-2 backdrop-blur dark:border-dark-700 dark:bg-dark-950/95 md:hidden">
           {links.map((link) => (
             <li key={link.to}>
               <NavLink
@@ -104,8 +104,8 @@ export default function Navbar() {
                 className={({ isActive }) =>
                   `block rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                     isActive
-                      ? 'bg-dark-700 text-accent'
-                      : 'text-gray-300 hover:bg-dark-700 hover:text-white'
+                      ? 'bg-gray-100 text-accent dark:bg-dark-700'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-dark-700 dark:hover:text-white'
                   }`
                 }
               >

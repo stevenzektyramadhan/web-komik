@@ -2,18 +2,30 @@
 
 Aplikasi web gratis (Rp 0) untuk membaca **manga, manhwa, dan manhua** dalam bahasa
 Indonesia, dibangun dengan React + Vite + Tailwind CSS dan bersumber dari
-**[MangaDex API](https://api.mangadex.org)**.
+**[MangaDex API](https://api.mangadex.org)** serta **Komiku**.
 
 ## ✨ Fitur
 
 - 🏠 **Beranda** — komik terbaru (chapter bahasa Indonesia terakhir diunggah) & populer
 - 🗂 **Kategori** — tab Manga / Manhwa / Manhua (tag diambil dari MangaDex saat runtime)
-- 🔍 **Cari** — pencarian judul
+- 🔍 **Cari** — pencarian judul (MangaDex & Komiku)
 - 📖 **Detail** — sinopsis, genre, penulis, daftar chapter bahasa Indonesia
-- 📚 **Pembaca** — mode **scroll vertikal** & mode **halaman**, navigasi prev/next chapter
+- 📚 **Pembaca** — mode **scroll vertikal** & mode **halaman**, navigasi prev/next chapter,
+  **auto-load chapter berikutnya** saat mendekati bawah halaman (mode scroll)
 - ⭐ **Favorit** — simpan komik (localStorage)
-- 🕘 **Riwayat** — lanjutkan baca dari chapter terakhir (localStorage)
-- 🌙 **Mode gelap** penuh, UI 100% Bahasa Indonesia
+- 🕘 **Riwayat** — lanjutkan baca dari chapter terakhir, **hapus per-item**, **progress bar**
+- ⚡ **Cache API** — daftar & detail disimpan di localStorage (10 menit / 1 jam) supaya
+  navigasi kembali instan dan tetap terbaca saat offline
+- 🌓 **Mode terang & gelap** penuh (`dark:` variants, tersimpan di localStorage), UI 100% Bahasa Indonesia
+
+## 🧪 Test
+
+Unit test memakai **Vitest + Testing Library** (helper murni: cache, tema, format, hook localStorage):
+
+```bash
+npm test          # sekali jalan
+npm run test:watch # watch mode
+```
 
 ## 🚀 Menjalankan
 
@@ -28,16 +40,17 @@ npm run preview    # preview build
 
 ```
 src/
-├── api/mangadex.js          # API layer MangaDex (filter bahasa id)
-├── components/              # Navbar, MangaCard, Loading
-├── hooks/useLocalStorage.js # hook favorit & riwayat
-├── pages/                   # Beranda, Kategori, Cari, Detail, Baca, Favorit, Riwayat
+├── api/                     # API layer MangaDex (mangadex.js) & Komiku (komiku.js)
+├── components/              # Navbar, MangaCard, KomikuCard, Loading, Pagination, ...
+├── hooks/                   # useLocalStorage (favorit & riwayat), usePageMeta
+├── lib/                     # cache (localStorage+TTL), theme (mode terang/gelap), format
+├── pages/                   # Beranda, Kategori, Cari, Detail, Baca, Favorit, Riwayat, Komiku, ...
 └── App.jsx                  # routing + footer
 ```
 
 ## ⚖️ Legal (kewajiban MangaDex)
 
-- Semua data & gambar bersumber dari MangaDex.
+- Semua data & gambar bersumber dari MangaDex (dan sebagian dari Komiku).
 - Kredit diberikan ke MangaDex dan grup scanlation (tercantum di footer & daftar chapter).
 - Aplikasi **tanpa iklan & tanpa fitur berbayar** — murni gratis.
 

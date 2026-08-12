@@ -144,7 +144,7 @@ export default function Komiku() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       <h1 className="mb-2 text-2xl font-bold">Komiku</h1>
-      <p className="mb-6 text-sm text-gray-400">
+      <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
         Koleksi komik berbahasa Indonesia dari Komiku — lengkap dengan chapter terjemahan.
       </p>
 
@@ -162,7 +162,7 @@ export default function Komiku() {
       </form>
 
       <div className="mb-6">
-        <label className="mb-1 block text-sm text-gray-400">Jelajahi per genre:</label>
+        <label className="mb-1 block text-sm text-gray-500 dark:text-gray-400">Jelajahi per genre:</label>
         <select
           value={mode === 'search' ? '' : genre}
           onChange={(e) => changeGenre(e.target.value)}
@@ -184,21 +184,21 @@ export default function Komiku() {
           Gagal memuat: {error} — kemungkinan genre/endpoint sedang bermasalah di API Komiku.
         </p>
       ) : results.length === 0 ? (
-        <p className="py-10 text-center text-gray-500">
+        <p className="py-10 text-center text-gray-500 dark:text-gray-400">
           {searching
             ? 'Tidak ada komik yang cocok. Coba kata kunci lain.'
             : 'Tidak ada komik untuk genre ini.'}
         </p>
       ) : (
         <>
-          <p className="mb-4 text-sm text-gray-400">
+          <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
             {searching ? (
               <>
                 Ditemukan {total} hasil untuk &quot;{query}&quot;
               </>
             ) : (
               <>
-                Komik genre <span className="text-gray-200">{genre}</span> — halaman {page}
+                Komik genre <span className="text-gray-700 dark:text-gray-200">{genre}</span> — halaman {page}
               </>
             )}
           </p>

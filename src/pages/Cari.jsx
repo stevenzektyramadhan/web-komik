@@ -121,11 +121,11 @@ export default function Cari() {
 
       {!loading && !error && searched && (
         <div>
-          <p className="mb-4 text-sm text-gray-400">
+          <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
             Ditemukan {total} hasil untuk &quot;{query}&quot;
           </p>
           {results.length === 0 ? (
-            <p className="py-10 text-center text-gray-500">
+            <p className="py-10 text-center text-gray-500 dark:text-gray-400">
               Tidak ada komik yang cocok. Coba kata kunci lain.
             </p>
           ) : (

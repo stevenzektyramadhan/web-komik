@@ -129,7 +129,7 @@ export default function Kategori() {
             className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
               format === f.key
                 ? 'bg-accent text-white'
-                : 'border border-dark-600 text-gray-300 hover:border-accent hover:text-accent'
+                : 'border border-gray-300 text-gray-600 hover:border-accent hover:text-accent dark:border-dark-600 dark:text-gray-300'
             }`}
           >
             {f.label}
@@ -157,7 +157,7 @@ export default function Kategori() {
       ) : error ? (
         <p className="text-red-400">Gagal memuat: {error}</p>
       ) : list.length === 0 ? (
-        <p className="py-10 text-center text-gray-500">Tidak ada komik untuk kategori ini.</p>
+        <p className="py-10 text-center text-gray-500 dark:text-gray-400">Tidak ada komik untuk kategori ini.</p>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">

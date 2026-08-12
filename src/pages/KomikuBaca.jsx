@@ -36,6 +36,8 @@ export default function KomikuBaca() {
   // eslint-disable-next-line no-unused-vars
   const [riwayat, setRiwayat] = useLocalStorage('webkomik_riwayat', []);
   const scrollRef = useRef(0); // posisi scroll untuk menyimpan kemajuan
+  const [autoLoading, setAutoLoading] = useState(false); // auto-load chapter berikutnya
+  const autoLoadingRef = useRef(false);
 
   // Kalau dibuka tanpa ?cs (mis. dari Riwayat), resolve slug chapter dari
   // daftar chapter detail.
@@ -220,6 +222,37 @@ export default function KomikuBaca() {
     };
   }, [mode]);
 
+  // Auto-load chapter berikutnya (mode scroll): saat user mendekati bagian
+  // bawah (≥90% tinggi halaman) dan ada chapter berikutnya, otomatis pindah
+  // ke chapter itu tanpa klik. Dipasang di window scroll supaya berfungsi
+  // juga saat tinggi dokumen berubah setelah gambar selesai dimuat.
+  useEffect(() => {
+    if (mode !== 'scroll' || !nextChapter) return undefined;
+    const checkAutoLoad = () => {
+      const maxScroll = Math.max(
+        1,
+        document.documentElement.scrollHeight - window.innerHeight
+      );
+      const pos = (window.scrollY || 0) / maxScroll;
+      if (pos >= 0.9 && !autoLoadingRef.current) {
+        autoLoadingRef.current = true;
+        setAutoLoading(true);
+        navigate(chapterTo(nextChapter));
+      }
+    };
+    window.addEventListener('scroll', checkAutoLoad, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', checkAutoLoad);
+      autoLoadingRef.current = false;
+    };
+  }, [mode, nextChapter, slug, navigate]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reset flag auto-load saat chapter berganti.
+  useEffect(() => {
+    autoLoadingRef.current = false;
+    setAutoLoading(false);
+  }, [chapter]);
+
   // Keyboard navigasi: ← / → pindah halaman (mode halaman) atau
   // ganti chapter (mode scroll); Home/End lompat awal/akhir.
   // Tidak aktif saat fokus di input/textarea/select.
@@ -284,12 +317,12 @@ export default function KomikuBaca() {
   return (
     <div className="mx-auto max-w-5xl px-0 py-0">
       {/* Toolbar */}
-      <div className="sticky top-0 z-40 border-b border-dark-700 bg-dark-950/95 backdrop-blur">
+      <div className="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur dark:border-dark-700 dark:bg-dark-950/95">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm">
           <div className="flex items-center gap-2">
             <Link
               to={`/komiku/${slug}`}
-              className="rounded px-2 py-1 text-gray-300 hover:bg-dark-700 hover:text-white"
+              className="rounded px-2 py-1 text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-dark-700 dark:hover:text-white"
               title="Kembali ke detail"
             >
               ←
@@ -331,7 +364,7 @@ export default function KomikuBaca() {
               className={`rounded-lg px-3 py-1.5 text-xs font-medium ${
                 mode === 'scroll'
                   ? 'bg-accent text-white'
-                  : 'border border-dark-600 text-gray-300 hover:border-accent'
+                  : 'border border-gray-300 text-gray-600 hover:border-accent dark:border-dark-600 dark:text-gray-300'
               }`}
             >
               📜 Scroll
@@ -342,7 +375,7 @@ export default function KomikuBaca() {
               className={`rounded-lg px-3 py-1.5 text-xs font-medium ${
                 mode === 'page'
                   ? 'bg-accent text-white'
-                  : 'border border-dark-600 text-gray-300 hover:border-accent'
+                  : 'border border-gray-300 text-gray-600 hover:border-accent dark:border-dark-600 dark:text-gray-300'
               }`}
             >
               📄 Halaman
@@ -360,7 +393,7 @@ export default function KomikuBaca() {
         ) : (
           <span />
         )}
-        <span className="hidden text-sm text-gray-400 sm:inline">Bahasa Indonesia</span>
+        <span className="hidden text-sm text-gray-500 dark:text-gray-400 sm:inline">Bahasa Indonesia</span>
         {nextChapter ? (
           <Link to={chapterTo(nextChapter)} className="btn-primary px-2 text-xs sm:px-4 sm:text-sm">
             Ch. {nextChapter.chapter || '?'} →
@@ -382,6 +415,20 @@ export default function KomikuBaca() {
               className="w-full max-w-3xl"
             />
           ))}
+          {nextChapter && (
+            <div className="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+              {autoLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-accent dark:border-dark-600" />
+                  Memuat chapter berikutnya...
+                </span>
+              ) : (
+                <Link to={chapterTo(nextChapter)} className="hover:text-accent">
+                  Lanjut ke Ch. {nextChapter.chapter || '?'} →
+                </Link>
+              )}
+            </div>
+          )}
         </div>
       ) : (
         /* Mode Halaman */
@@ -401,7 +448,7 @@ export default function KomikuBaca() {
             >
               ← Sebelumnya
             </button>
-            <span className="text-sm text-gray-400">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               {pageIdx + 1} / {images.length}
             </span>
             <button
@@ -427,7 +474,7 @@ export default function KomikuBaca() {
         )}
         <Link
           to={`/komiku/${slug}`}
-          className="hidden text-sm text-gray-400 hover:text-accent sm:inline"
+          className="hidden text-sm text-gray-500 hover:text-accent dark:text-gray-400 sm:inline"
         >
           Kembali ke daftar chapter
         </Link>
