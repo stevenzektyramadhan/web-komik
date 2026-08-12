@@ -4,6 +4,7 @@ import { getByFormat, getGenres } from '../api/mangadex';
 import MangaCard from '../components/MangaCard';
 import Loading from '../components/Loading';
 import Pagination from '../components/Pagination';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 const FORMATS = [
   { key: 'manga', label: 'Manga' },
@@ -29,6 +30,13 @@ export default function Kategori() {
   const requestIdRef = useRef(0);
 
   const totalPages = Math.max(1, Math.ceil(total / LIMIT));
+
+  // SEO: judul & deskripsi mengikuti format yang sedang dipilih
+  const formatLabel = FORMATS.find((f) => f.key === format)?.label || format;
+  usePageMeta(
+    `Kategori ${formatLabel} — WebKomik`,
+    `Jelajahi komik ${formatLabel} bahasa Indonesia di WebKomik.`
+  );
 
   // Muat daftar genre sekali saat halaman dibuka
   useEffect(() => {

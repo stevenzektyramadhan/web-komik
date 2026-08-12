@@ -4,6 +4,7 @@ import { getKomikuByGenre, searchKomiku } from '../api/komiku';
 import KomikuCard from '../components/KomikuCard';
 import Loading from '../components/Loading';
 import Pagination from '../components/Pagination';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 // Daftar genre Komiku (endpoint /genre-all sedang kosong di API, jadi daftar
 // ini di-hardcode dari menu genre situs komiku.org).
@@ -52,6 +53,12 @@ export default function Komiku() {
   const requestIdRef = useRef(0);
 
   const searching = mode === 'search' && query.trim() !== '';
+
+  // SEO: judul & deskripsi mengikuti mode (genre / pencarian)
+  usePageMeta(
+    searching ? `Cari "${query.trim()}" di Komiku — WebKomik` : `Komiku — Genre ${genre} — WebKomik`,
+    'Koleksi komik berbahasa Indonesia dari Komiku — lengkap dengan chapter terjemahan.'
+  );
 
   // Jaga kotak pencarian tetap sinkron dengan query di URL (mis. saat
   // kembali dari halaman Detail / back browser ke mode genre).

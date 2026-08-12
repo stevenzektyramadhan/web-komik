@@ -1,15 +1,21 @@
+import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import Loading from './components/Loading';
+import BackToTop from './components/BackToTop';
+// Beranda dimuat eager (bukan lazy) supaya halaman awal langsung tampil.
 import Beranda from './pages/Beranda';
-import Kategori from './pages/Kategori';
-import Cari from './pages/Cari';
-import Detail from './pages/Detail';
-import Baca from './pages/Baca';
-import Favorit from './pages/Favorit';
-import Riwayat from './pages/Riwayat';
-import Komiku from './pages/Komiku';
-import KomikuDetail from './pages/KomikuDetail';
-import KomikuBaca from './pages/KomikuBaca';
+
+const Kategori = lazy(() => import('./pages/Kategori'));
+const Cari = lazy(() => import('./pages/Cari'));
+const Detail = lazy(() => import('./pages/Detail'));
+const Baca = lazy(() => import('./pages/Baca'));
+const Favorit = lazy(() => import('./pages/Favorit'));
+const Riwayat = lazy(() => import('./pages/Riwayat'));
+const Komiku = lazy(() => import('./pages/Komiku'));
+const KomikuDetail = lazy(() => import('./pages/KomikuDetail'));
+const KomikuBaca = lazy(() => import('./pages/KomikuBaca'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 function Footer() {
   return (
@@ -41,20 +47,23 @@ export default function App() {
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <main className="flex-1">
-        <Routes>
-          <Route path="/" element={<Beranda />} />
-          <Route path="/kategori" element={<Kategori />} />
-          <Route path="/cari" element={<Cari />} />
-          <Route path="/komik/:id" element={<Detail />} />
-          <Route path="/komik/:id/baca/:chapterId" element={<Baca />} />
-          <Route path="/favorit" element={<Favorit />} />
-          <Route path="/riwayat" element={<Riwayat />} />
-          <Route path="/komiku" element={<Komiku />} />
-          <Route path="/komiku/:slug" element={<KomikuDetail />} />
-          <Route path="/komiku/:slug/baca/:chapter" element={<KomikuBaca />} />
-          <Route path="*" element={<Beranda />} />
-        </Routes>
+        <Suspense fallback={<Loading label="Memuat halaman..." />}>
+          <Routes>
+            <Route path="/" element={<Beranda />} />
+            <Route path="/kategori" element={<Kategori />} />
+            <Route path="/cari" element={<Cari />} />
+            <Route path="/komik/:id" element={<Detail />} />
+            <Route path="/komik/:id/baca/:chapterId" element={<Baca />} />
+            <Route path="/favorit" element={<Favorit />} />
+            <Route path="/riwayat" element={<Riwayat />} />
+            <Route path="/komiku" element={<Komiku />} />
+            <Route path="/komiku/:slug" element={<KomikuDetail />} />
+            <Route path="/komiku/:slug/baca/:chapter" element={<KomikuBaca />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </main>
+      <BackToTop />
       <Footer />
     </div>
   );

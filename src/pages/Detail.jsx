@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getManga, getChapters } from '../api/mangadex';
 import Loading from '../components/Loading';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 function formatTanggal(iso) {
   if (!iso) return '';
@@ -79,6 +80,14 @@ export default function Detail() {
       ]);
     }
   };
+
+  // SEO: judul & deskripsi mengikuti data komik yang dimuat
+  usePageMeta(
+    manga ? `${manga.title} — WebKomik` : 'Detail Komik — WebKomik',
+    manga?.description
+      ? manga.description.replace(/\s+/g, ' ').slice(0, 160)
+      : 'Detail komik, sinopsis, dan daftar chapter bahasa Indonesia di WebKomik.'
+  );
 
   if (loading) return <Loading label="Memuat detail komik..." />;
   if (error) return <p className="p-8 text-red-400">Gagal memuat: {error}</p>;

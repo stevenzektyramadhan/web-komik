@@ -2,9 +2,16 @@ import { Link } from 'react-router-dom';
 import MangaCard from '../components/MangaCard';
 import KomikuCard from '../components/KomikuCard';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 export default function Favorit() {
   const [favorit, setFavorit] = useLocalStorage('webkomik_favorit', []);
+
+  // SEO: judul & deskripsi halaman Favorit
+  usePageMeta(
+    'Favorit Saya — WebKomik',
+    'Daftar komik favorit yang kamu simpan di WebKomik.'
+  );
 
   const hapus = (id) => {
     setFavorit(favorit.filter((f) => f.id !== id));

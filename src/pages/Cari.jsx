@@ -4,6 +4,7 @@ import { searchManga } from '../api/mangadex';
 import MangaCard from '../components/MangaCard';
 import Loading from '../components/Loading';
 import Pagination from '../components/Pagination';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 const LIMIT = 100;
 
@@ -23,6 +24,12 @@ export default function Cari() {
 
   const totalPages = Math.max(1, Math.ceil(total / LIMIT));
   const searched = query.trim() !== '';
+
+  // SEO: judul & deskripsi mengikuti kata kunci pencarian
+  usePageMeta(
+    query.trim() ? `Cari "${query.trim()}" — WebKomik` : 'Cari Komik — WebKomik',
+    'Cari judul komik, manga, manhwa, dan manhua bahasa Indonesia di WebKomik.'
+  );
 
   // Jaga kotak pencarian tetap sinkron dengan query di URL (mis. saat
   // kembali dari halaman Detail / back browser).

@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { getKomikuChapterImages, getKomikuChapters, getKomikuDetail } from '../api/komiku';
 import Loading from '../components/Loading';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 export default function KomikuBaca() {
   const { slug, chapter } = useParams();
@@ -97,6 +98,12 @@ export default function KomikuBaca() {
   const nextChapter = navigation?.nextChapter || null;
   const chapterTo = (c) =>
     c ? `/komiku/${slug}/baca/${c.chapter}?cs=${encodeURIComponent(c.slug)}` : null;
+
+  // SEO: judul & deskripsi chapter yang sedang dibaca
+  usePageMeta(
+    manga ? `Ch. ${chapter} — ${manga.title} — WebKomik` : 'Membaca — WebKomik',
+    'Baca komik manga, manhwa, dan manhua bahasa Indonesia secara gratis di WebKomik.'
+  );
 
   if (loading) return <Loading label="Memuat chapter Komiku..." />;
   if (error)

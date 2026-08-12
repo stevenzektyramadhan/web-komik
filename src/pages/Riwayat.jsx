@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 function formatWaktu(ts) {
   if (!ts) return '';
@@ -13,6 +14,12 @@ function formatWaktu(ts) {
 
 export default function Riwayat() {
   const [riwayat, setRiwayat] = useLocalStorage('webkomik_riwayat', []);
+
+  // SEO: judul & deskripsi halaman Riwayat
+  usePageMeta(
+    'Riwayat Baca — WebKomik',
+    'Riwayat chapter yang pernah kamu baca di WebKomik.'
+  );
 
   const hapusSemua = () => setRiwayat([]);
 

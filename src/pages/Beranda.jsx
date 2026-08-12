@@ -2,12 +2,19 @@ import { useEffect, useState } from 'react';
 import { getLatest, getPopular } from '../api/mangadex';
 import MangaCard from '../components/MangaCard';
 import Loading from '../components/Loading';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 export default function Beranda() {
   const [latest, setLatest] = useState([]);
   const [popular, setPopular] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // SEO: judul & deskripsi halaman Beranda
+  usePageMeta(
+    'WebKomik — Baca Komik Bahasa Indonesia',
+    'Baca manga, manhwa, dan manhua bahasa Indonesia secara gratis.'
+  );
 
   useEffect(() => {
     let active = true;

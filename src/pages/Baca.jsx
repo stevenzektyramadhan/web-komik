@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { getManga, getChapters, getChapterImages } from '../api/mangadex';
 import Loading from '../components/Loading';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 export default function Baca() {
   const { id, chapterId } = useParams();
@@ -68,6 +69,14 @@ export default function Baca() {
   const idx = chapters.findIndex((c) => c.id === chapterId);
   const prevChapter = idx > 0 ? chapters[idx - 1] : null;
   const nextChapter = idx >= 0 && idx < chapters.length - 1 ? chapters[idx + 1] : null;
+
+  // SEO: judul & deskripsi chapter yang sedang dibaca
+  usePageMeta(
+    chapterInfo
+      ? `Ch. ${chapterInfo.chapter || '?'} — ${manga?.title || 'Membaca'} — WebKomik`
+      : 'Membaca — WebKomik',
+    'Baca komik manga, manhwa, dan manhua bahasa Indonesia secara gratis di WebKomik.'
+  );
 
   if (loading) return <Loading label="Memuat chapter..." />;
   if (error)
