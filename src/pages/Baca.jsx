@@ -299,7 +299,25 @@ export default function Baca() {
             </span>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex flex-wrap items-center justify-end gap-1">
+            {prevChapter && (
+              <Link
+                to={`/komik/${id}/baca/${prevChapter.id}`}
+                className="rounded-lg border border-gray-300 px-2 py-1.5 text-xs font-medium text-gray-600 transition hover:border-accent hover:text-accent dark:border-dark-600 dark:text-gray-300"
+                title={`Ke chapter sebelumnya (Ch. ${prevChapter.chapter || '?'})`}
+              >
+                ← Ch. {prevChapter.chapter || '?'}
+              </Link>
+            )}
+            {nextChapter && (
+              <Link
+                to={`/komik/${id}/baca/${nextChapter.id}`}
+                className="rounded-lg bg-accent px-2 py-1.5 text-xs font-medium text-white transition hover:opacity-90"
+                title={`Ke chapter berikutnya (Ch. ${nextChapter.chapter || '?'})`}
+              >
+                Ch. {nextChapter.chapter || '?'} →
+              </Link>
+            )}
             <select
               aria-label="Pilih chapter"
               value={chapterId}

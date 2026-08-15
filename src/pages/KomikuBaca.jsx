@@ -151,8 +151,20 @@ export default function KomikuBaca() {
     }
   }, [chapter, mode]);
 
-  const prevChapter = navigation?.prevChapter || null;
-  const nextChapter = navigation?.nextChapter || null;
+  // Prev/Next dihitung dari daftar chapter lengkap (getKomikuChapters) supaya
+  // tombol selalu muncul — `navigation` dari API /baca-chapter sering null pada
+  // chapter terakhir / chapter yang slug-nya tidak sama dengan slug detail.
+  // Daftar chapter berurutan menurun (terbaru dulu): prev = indeks sesudahnya
+  // (chapter yang lebih tinggi), next = indeks sebelumnya (chapter lebih rendah).
+  const chapterIdx = chapters.findIndex((c) => c.chapter === chapter);
+  const prevChapter =
+    chapterIdx >= 0 && chapterIdx < chapters.length - 1
+      ? chapters[chapterIdx + 1]
+      : navigation?.prevChapter || null;
+  const nextChapter =
+    chapterIdx > 0
+      ? chapters[chapterIdx - 1]
+      : navigation?.nextChapter || null;
   const chapterTo = (c) =>
     c ? `/komiku/${slug}/baca/${c.chapter}?cs=${encodeURIComponent(c.slug)}` : null;
 
@@ -334,7 +346,25 @@ export default function KomikuBaca() {
             <span className="hidden text-accent sm:inline">Ch. {chapter || '?'}</span>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex flex-wrap items-center justify-end gap-1">
+            {prevChapter && (
+              <Link
+                to={chapterTo(prevChapter)}
+                className="rounded-lg border border-gray-300 px-2 py-1.5 text-xs font-medium text-gray-600 transition hover:border-accent hover:text-accent dark:border-dark-600 dark:text-gray-300"
+                title={`Ke chapter sebelumnya (Ch. ${prevChapter.chapter || '?'})`}
+              >
+                ← Ch. {prevChapter.chapter || '?'}
+              </Link>
+            )}
+            {nextChapter && (
+              <Link
+                to={chapterTo(nextChapter)}
+                className="rounded-lg bg-accent px-2 py-1.5 text-xs font-medium text-white transition hover:opacity-90"
+                title={`Ke chapter berikutnya (Ch. ${nextChapter.chapter || '?'})`}
+              >
+                Ch. {nextChapter.chapter || '?'} →
+              </Link>
+            )}
             <select
               aria-label="Pilih chapter"
               value={chapter}

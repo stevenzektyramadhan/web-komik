@@ -34,6 +34,16 @@ const GENRES = [
   { label: 'Webtoon', slug: 'webtoon' },
 ];
 
+// Filter tipe komik (Manga / Manhwa / Manhua). Nilai `tipe` di URL query
+// string. '' berarti semua tipe. API Komiku menaruh field `type` di tiap
+// item daftar, jadi pemfilteran dilakukan di klien setelah data dimuat.
+const TYPES = [
+  { label: 'Semua', value: '' },
+  { label: 'Manga', value: 'manga' },
+  { label: 'Manhwa', value: 'manhwa' },
+  { label: 'Manhua', value: 'manhua' },
+];
+
 export default function Komiku() {
   // Filter (genre/mode/halaman/kata kunci) disimpan di URL query string
   // supaya tetap terjaga saat kembali dari halaman Detail Komiku / memakai
@@ -43,10 +53,13 @@ export default function Komiku() {
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
   const mode = searchParams.get('mode') === 'search' ? 'search' : 'genre'; // 'genre' | 'search'
   const query = searchParams.get('q') || '';
+  // Filter tipe (Manga / Manhwa / Manhua). API Komiku tidak mendukung filter
+  // tipe server-side per genre, jadi hasil yang dimuat per genre/pencarian
+  // difilter di klien berdasarkan field `type` tiap item.
+  const typeFilter = searchParams.get('tipe') || ''; // '' | 'manga' | 'manhwa' | 'manhua'
 
   const [input, setInput] = useState(query);
   const [results, setResults] = useState([]);
-  const [total, setTotal] = useState(0);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -54,9 +67,20 @@ export default function Komiku() {
 
   const searching = mode === 'search' && query.trim() !== '';
 
-  // SEO: judul & deskripsi mengikuti mode (genre / pencarian)
+  // Hasil yang sudah dimuat API (per genre / pencarian) difilter berdasarkan
+  // tipe yang dipilih. Pencocokan tidak peka huruf besar/kecil.
+  const filteredResults = typeFilter
+    ? results.filter(
+        (m) => (m.type || '').toLowerCase() === typeFilter.toLowerCase()
+      )
+    : results;
+
+  // SEO: judul & deskripsi mengikuti mode (genre / pencarian) + filter tipe
+  const typeLabel = TYPES.find((t) => t.value === typeFilter)?.label || '';
   usePageMeta(
-    searching ? `Cari "${query.trim()}" di Komiku — WebKomik` : `Komiku — Genre ${genre} — WebKomik`,
+    searching
+      ? `Cari "${query.trim()}" di Komiku${typeLabel ? ` — ${typeLabel}` : ''} — WebKomik`
+      : `Komiku — Genre ${genre}${typeLabel ? ` — ${typeLabel}` : ''} — WebKomik`,
     'Koleksi komik berbahasa Indonesia dari Komiku — lengkap dengan chapter terjemahan.'
   );
 
@@ -84,13 +108,11 @@ export default function Komiku() {
           const d = await searchKomiku(query);
           if (!active || reqId !== requestIdRef.current) return;
           setResults(d.results);
-          setTotal(d.total);
           setHasNextPage(false);
         } else {
           const d = await getKomikuByGenre(genre, page);
           if (!active || reqId !== requestIdRef.current) return;
           setResults(d.results);
-          setTotal(d.total);
           setHasNextPage(d.hasNextPage);
         }
       } catch (e) {
@@ -133,7 +155,12 @@ export default function Komiku() {
 
   const changeGenre = (value) => {
     if (value === genre && mode === 'genre') return;
+    // tipe dibiarkan (dipertahankan di URL) saat ganti genre.
     updateParams({ genre: value, mode: 'genre', page: 1, q: '' });
+  };
+
+  const changeType = (value) => {
+    updateParams({ tipe: value, page: 1 });
   };
 
   const changePage = (next) => {
@@ -161,6 +188,24 @@ export default function Komiku() {
         </button>
       </form>
 
+      {/* Filter tipe: Manga / Manhwa / Manhua / Semua */}
+      <div className="mb-4 flex flex-wrap gap-1.5">
+        {TYPES.map((t) => (
+          <button
+            key={t.value || 'all'}
+            type="button"
+            onClick={() => changeType(t.value)}
+            className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
+              typeFilter === t.value
+                ? 'bg-accent text-white'
+                : 'border border-gray-300 text-gray-600 hover:border-accent hover:text-accent dark:border-dark-600 dark:text-gray-300'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       <div className="mb-6">
         <label className="mb-1 block text-sm text-gray-500 dark:text-gray-400">Jelajahi per genre:</label>
         <select
@@ -183,22 +228,31 @@ export default function Komiku() {
         <p className="text-red-400">
           Gagal memuat: {error} — kemungkinan genre/endpoint sedang bermasalah di API Komiku.
         </p>
-      ) : results.length === 0 ? (
+      ) : filteredResults.length === 0 ? (
         <p className="py-10 text-center text-gray-500 dark:text-gray-400">
           {searching
             ? 'Tidak ada komik yang cocok. Coba kata kunci lain.'
-            : 'Tidak ada komik untuk genre ini.'}
+            : typeFilter
+              ? `Tidak ada komik tipe ${typeLabel} untuk genre ${genre}.`
+              : 'Tidak ada komik untuk genre ini.'}
         </p>
       ) : (
         <>
           <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
             {searching ? (
               <>
-                Ditemukan {total} hasil untuk &quot;{query}&quot;
+                Ditemukan {filteredResults.length} hasil untuk &quot;{query}&quot;
+                {typeLabel ? ` (tipe ${typeLabel})` : ''}
               </>
             ) : (
               <>
-                Komik genre <span className="text-gray-700 dark:text-gray-200">{genre}</span> — halaman {page}
+                Komik genre <span className="text-gray-700 dark:text-gray-200">{genre}</span>
+                {typeLabel ? (
+                  <>
+                    {' '}— tipe <span className="text-gray-700 dark:text-gray-200">{typeLabel}</span>
+                  </>
+                ) : null}
+                {' '}— halaman {page}
               </>
             )}
           </p>
@@ -206,7 +260,7 @@ export default function Komiku() {
           {/* Grid lebih lebar (4 kolom max) karena cover Komiku berbentuk
               banner horizontal (~1.91:1), bukan potret 3:4 seperti MangaDex. */}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {results.map((m) => (
+            {filteredResults.map((m) => (
               <KomikuCard key={m.id} manga={m} />
             ))}
           </div>
