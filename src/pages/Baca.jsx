@@ -33,6 +33,7 @@ export default function Baca() {
   const scrollRef = useRef(0); // posisi scroll untuk menyimpan kemajuan
   const [autoLoading, setAutoLoading] = useState(false); // auto-load chapter berikutnya
   const autoLoadingRef = useRef(false);
+  const suppressAutoLoadRef = useRef(false); // cegah auto-load beruntun saat restore posisi
 
   // Simpan preferensi mode reader yang dipilih user.
   useEffect(() => {
@@ -75,12 +76,15 @@ export default function Baca() {
             if (typeof saved.pageIdx === 'number' && saved.totalPages) {
               setPageIdx(Math.min(saved.pageIdx, img.files.length - 1));
             } else if (typeof saved.progress === 'number' && saved.progress > 0) {
+              // Batasi ke 90% supaya tidak langsung memicu auto-load chapter
+              // berikutnya; sambil itu, tahan auto-load sementara (suppress).
+              suppressAutoLoadRef.current = true;
               setTimeout(() => {
                 const maxScroll = Math.max(
                   1,
                   document.documentElement.scrollHeight - window.innerHeight
                 );
-                window.scrollTo({ top: (saved.progress / 100) * maxScroll });
+                window.scrollTo({ top: Math.min(0.9, saved.progress / 100) * maxScroll });
               }, 400);
             }
           }
@@ -188,30 +192,36 @@ export default function Baca() {
   // bawah (≥90% tinggi halaman) dan ada chapter berikutnya, otomatis pindah
   // ke chapter itu tanpa klik. Dipasang di window scroll supaya berfungsi
   // juga saat tinggi dokumen berubah setelah gambar selesai dimuat.
+  // nextChapter disimpan di ref supaya listener scroll tetap terpasang
+  // (tidak di-mount ulang) dan tidak memicu beruntun saat chapter berganti.
+  // suppressAutoLoadRef menahan trigger saat posisi dipulihkan dari riwayat.
+  const autoLoadRef = useRef(null);
+  autoLoadRef.current = nextChapter;
   useEffect(() => {
-    if (mode !== 'scroll' || !nextChapter) return undefined;
+    if (mode !== 'scroll') return undefined;
     const checkAutoLoad = () => {
+      const nc = autoLoadRef.current;
+      if (suppressAutoLoadRef.current || !nc || autoLoadingRef.current) return;
       const maxScroll = Math.max(
         1,
         document.documentElement.scrollHeight - window.innerHeight
       );
       const pos = (window.scrollY || 0) / maxScroll;
-      if (pos >= 0.9 && !autoLoadingRef.current) {
+      if (pos >= 0.9) {
         autoLoadingRef.current = true;
         setAutoLoading(true);
-        navigate(`/komik/${id}/baca/${nextChapter.id}`);
+        navigate(`/komik/${id}/baca/${nc.id}`);
       }
     };
     window.addEventListener('scroll', checkAutoLoad, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', checkAutoLoad);
-      autoLoadingRef.current = false;
-    };
-  }, [mode, nextChapter, id, navigate]);
+    return () => window.removeEventListener('scroll', checkAutoLoad);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, id, navigate]);
 
-  // Reset flag auto-load saat chapter berganti.
+  // Reset flag auto-load & suppress saat chapter berganti.
   useEffect(() => {
     autoLoadingRef.current = false;
+    suppressAutoLoadRef.current = false;
     setAutoLoading(false);
   }, [chapterId]);
 
@@ -351,6 +361,34 @@ export default function Baca() {
               📄 Halaman
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Tombol prev/next selalu terlihat (sticky di sisi kiri/kanan) */}
+      <div className="pointer-events-none fixed inset-y-0 left-2 z-40 hidden items-center lg:flex">
+        <div className="pointer-events-auto -translate-x-16 opacity-0 transition-all duration-200 hover:translate-x-0 hover:opacity-100 lg:opacity-40">
+          {prevChapter ? (
+            <Link
+              to={`/komik/${id}/baca/${prevChapter.id}`}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 bg-white text-xl text-gray-700 shadow-lg transition hover:border-accent hover:text-accent dark:border-dark-600 dark:bg-dark-800 dark:text-gray-200"
+              title={`Ke chapter sebelumnya (Ch. ${prevChapter.chapter || '?'})`}
+            >
+              ‹
+            </Link>
+          ) : null}
+        </div>
+      </div>
+      <div className="pointer-events-none fixed inset-y-0 right-2 z-40 hidden items-center lg:flex">
+        <div className="pointer-events-auto translate-x-16 opacity-0 transition-all duration-200 hover:translate-x-0 hover:opacity-100 lg:opacity-40">
+          {nextChapter ? (
+            <Link
+              to={`/komik/${id}/baca/${nextChapter.id}`}
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 bg-white text-xl text-gray-700 shadow-lg transition hover:border-accent hover:text-accent dark:border-dark-600 dark:bg-dark-800 dark:text-gray-200"
+              title={`Ke chapter berikutnya (Ch. ${nextChapter.chapter || '?'})`}
+            >
+              ›
+            </Link>
+          ) : null}
         </div>
       </div>
 
